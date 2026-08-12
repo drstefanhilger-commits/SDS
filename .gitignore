@@ -1,0 +1,48 @@
+# STM32CubeIDE / STM32CubeMX
+*.db
+*.log
+
+# Build directories
+Debug/
+Release/
+build/
+out/
+bin/
+obj/
+
+# Generated code
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# VS Code
+
+# WSL2 / Linux
+*.o
+*.so
+*.out
+*.elf
+*.map
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+*.d
+*.orig
+
+# Logs
+*.log
+*.trace
+
+# Python (falls du Scripts nutzt)
+__pycache__/
+*.pyc
+
+# Misc
+Thumbs.db
+.DS_Store
