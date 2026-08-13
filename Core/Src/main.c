@@ -21,11 +21,11 @@
 #include "string.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "usb_host.h"
+#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sds_wrapper.hpp"
+#include "SDS_Wrapper.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -149,48 +149,7 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define SDRAM_MODEREG_BURST_LENGTH_1             ((uint16_t)0x0000)
-#define SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL      ((uint16_t)0x0000)
-#define SDRAM_MODEREG_CAS_LATENCY_3              ((uint16_t)0x0030)
-#define SDRAM_MODEREG_OPERATING_MODE_STANDARD    ((uint16_t)0x0000)
-#define SDRAM_MODEREG_WRITEBURST_MODE_SINGLE     ((uint16_t)0x0200)
 
-void SDRAM_InitSequence(SDRAM_HandleTypeDef *hsdram)
-{
-    FMC_SDRAM_CommandTypeDef Command;
-
-    /* Step 1: Clock enable command */
-    Command.CommandMode            = FMC_SDRAM_CMD_CLK_ENABLE;
-    Command.CommandTarget          = FMC_SDRAM_CMD_TARGET_BANK1;
-    Command.AutoRefreshNumber      = 1;
-    Command.ModeRegisterDefinition = 0;
-    HAL_SDRAM_SendCommand(hsdram, &Command, 0x1000);
-    HAL_Delay(1);
-
-    /* Step 2: Precharge All command */
-    Command.CommandMode = FMC_SDRAM_CMD_PALL;
-    HAL_SDRAM_SendCommand(hsdram, &Command, 0x1000);
-
-    /* Step 3: Auto-refresh command */
-    Command.CommandMode       = FMC_SDRAM_CMD_AUTOREFRESH_MODE;
-    Command.AutoRefreshNumber = 8;
-    HAL_SDRAM_SendCommand(hsdram, &Command, 0x1000);
-
-    /* Step 4: Load Mode Register */
-    uint32_t mode =
-          SDRAM_MODEREG_BURST_LENGTH_1
-        | SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL
-        | SDRAM_MODEREG_CAS_LATENCY_3
-        | SDRAM_MODEREG_OPERATING_MODE_STANDARD
-        | SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
-
-    Command.CommandMode            = FMC_SDRAM_CMD_LOAD_MODE;
-    Command.ModeRegisterDefinition = mode;
-    HAL_SDRAM_SendCommand(hsdram, &Command, 0x1000);
-
-    /* Step 5: Set the refresh rate counter */
-    HAL_SDRAM_ProgramRefreshRate(hsdram, 1386);
-}
 /* USER CODE END 0 */
 
 /**
@@ -213,12 +172,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-//  // Enable ITM/SWO for printf
-//  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-//  ITM->LAR = 0xC5ACCE55;  // unlock
-//  ITM->TCR = ITM_TCR_ITMENA_Msk | ITM_TCR_TSENA_Msk | ITM_TCR_SWOENA_Msk;
-//  ITM->TER = 1;           // enable stimulus port 0
-//  // Enable ITM/SWO for printf
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -228,16 +182,7 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  // Enable ITM/SWO for printf
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  ITM->LAR = 0xC5ACCE55;  // unlock
-  ITM->TCR = ITM_TCR_ITMENA_Msk | ITM_TCR_TSENA_Msk | ITM_TCR_SWOENA_Msk;
-  ITM->TER = 1;           // enable stimulus port 0
-//  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-//  DWT->CYCCNT = 0;
-//  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-//  // Enable ITM/SWO for printf
-
+  PrintfDriver();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -266,9 +211,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
   MX_FATFS_Init();
-
   /* USER CODE BEGIN 2 */
-//  SDS_RunSRPUnittest();
   SDS_Init();
   /* USER CODE END 2 */
 
@@ -297,13 +240,9 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-//  SDS_StartDSPTask();
   SDS_StartDisplayManagerTask();
   SDS_StartMicTask();
   SDS_StartSRPPhatTask();
-//
-//  SDS_RunSRPUnittest();
-
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -320,6 +259,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -554,10 +494,10 @@ static void MX_DMA2D_Init(void)
   /* USER CODE END DMA2D_Init 1 */
   hdma2d.Instance = DMA2D;
   hdma2d.Init.Mode = DMA2D_M2M;
-  hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB565;
+  hdma2d.Init.ColorMode = DMA2D_OUTPUT_ARGB8888;
   hdma2d.Init.OutputOffset = 0;
   hdma2d.LayerCfg[1].InputOffset = 0;
-  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;
+  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
   hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
   hdma2d.LayerCfg[1].InputAlpha = 0;
   if (HAL_DMA2D_Init(&hdma2d) != HAL_OK)
@@ -762,7 +702,6 @@ static void MX_LTDC_Init(void)
   pLayerCfg.WindowY1 = 272;
 //  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
-
   pLayerCfg.Alpha = 255;
   pLayerCfg.Alpha0 = 0;
   pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
@@ -1734,8 +1673,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* init code for USB_HOST */
-  MX_USB_HOST_Init();
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
@@ -1747,11 +1686,8 @@ void StartDefaultTask(void *argument)
 
  /* MPU Configuration */
 
-void MPU_Config(void)
-{
-	//hihi
-	// Erst wieder aktivieren, wenn alles ok ist
-	//hihi
+//void MPU_Config(void)
+//{
 //  MPU_Region_InitTypeDef MPU_InitStruct = {0};
 //
 //  /* Disables the MPU */
@@ -1774,51 +1710,8 @@ void MPU_Config(void)
 //  HAL_MPU_ConfigRegion(&MPU_InitStruct);
 //  /* Enables the MPU */
 //  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-
-    MPU_Region_InitTypeDef MPU_InitStruct;
-
-    /* MPU deaktivieren, bevor wir konfigurieren */
-    HAL_MPU_Disable();
-
-    /*----------------------------------------------------------*/
-    /* Region 0: AXI-SRAM (0x20010000) als uncached RAM        */
-    /*----------------------------------------------------------*/
-    MPU_InitStruct.Enable           = MPU_REGION_ENABLE;
-    MPU_InitStruct.BaseAddress      = 0x20010000;                 // AXI-SRAM Start
-    MPU_InitStruct.Size             = MPU_REGION_SIZE_256KB;      // je nach MCU ggf 512KB
-    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-    MPU_InitStruct.IsBufferable     = 0;
-    MPU_InitStruct.IsCacheable      = 0;                          // <<< WICHTIG: uncached
-    MPU_InitStruct.IsShareable      = 0;
-    MPU_InitStruct.Number           = MPU_REGION_NUMBER0;
-    MPU_InitStruct.TypeExtField     = MPU_TEX_LEVEL0;
-    MPU_InitStruct.SubRegionDisable = 0x00;
-    MPU_InitStruct.DisableExec      = 0;
-
-    HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-    /*----------------------------------------------------------*/
-    /* Region 1: SDRAM (0xC0000000) als uncached Framebuffer   */
-    /*----------------------------------------------------------*/
-    MPU_InitStruct.Enable           = MPU_REGION_ENABLE;
-    MPU_InitStruct.BaseAddress      = 0xC0000000;                 // SDRAM Start
-    MPU_InitStruct.Size             = MPU_REGION_SIZE_8MB;
-    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-    MPU_InitStruct.IsBufferable     = 0;
-    MPU_InitStruct.IsCacheable      = 0;                          // <<< WICHTIG: uncached für LTDC
-    MPU_InitStruct.IsShareable      = 0;
-    MPU_InitStruct.Number           = MPU_REGION_NUMBER1;
-    MPU_InitStruct.TypeExtField     = MPU_TEX_LEVEL0;
-    MPU_InitStruct.SubRegionDisable = 0x00;
-    MPU_InitStruct.DisableExec      = 0;
-
-    HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-    /*----------------------------------------------------------*/
-    /* MPU wieder aktivieren (privileged default)              */
-    /*----------------------------------------------------------*/
-    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-}
+//
+//}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
