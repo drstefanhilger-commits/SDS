@@ -61,91 +61,127 @@ void LCDTask::onStart()
     // LCD initialization or splash screen could be placed here.
 }
 
+extern "C" volatile uint32_t usb_debug_counter;
+//extern "C" volatile uint32_t usb_sds_counter;
+//extern "C" volatile uint32_t usb_sds_counter2;
+
+//extern "C" {
+//    extern volatile uint32_t usb_debug_counter;
+//    extern volatile uint32_t usb_debug_counter2;
+//}
+
 // ---------------------------------------------------------------------------
 // Periodic update — renders DSP results to the LCD.
 // ---------------------------------------------------------------------------
 void LCDTask::runOnce()
 {
-    char buf[128];
-
     // Clear screen
     pGfx->clear(Color::Black);
+    showRadar();
+    showSystemData();
+    if (dm.getMode()==1) {
+    	showDetecktion();
+    }
+    // Swap framebuffer (double buffering)
+    pGfx->activateFrameBuffer();
 
+    dm.setLcdLoopCounter(dm.getLcdLoopCounter() + 1);
+}
+
+// Show Radar
+void LCDTask::showRadar() {
     // Version
-    pGfx->text8x12(420, 10, "1.00", Color::White);
+    pGfx->text8x12(420, 10, "1.05", Color::White);
 
     // Draw reference geometry
-    pGfx->line(220, 10, 220, 262, Color::Red);     // vertical reference line
-    pGfx->circle(x0, y0, R,   Color::White);       // outer circle
+    pGfx->line(235, 10, 220, 262, Color::Red);     							// vertical reference line
+    pGfx->circle(x0, y0, R,   Color::White);       							// outer circle
     pGfx->circle(x0, y0, dm.getDebugValue3()*distFac, Color::Yellow);       // inner circle (trueDist)
 
-    // Convert DSP azimuth to radians
-    float angle = dm.getAzimuth() * deg2rad;
+    if (dm.getMode() == 1) {
+		// Convert DSP azimuth to radians
+		float angle = dm.getAzimuth() * deg2rad;
 
-    // Convert DSP distance to pixel radius
-    float r1 = dm.getDistance() * distFac;
+		// Convert DSP distance to pixel radius
+		float r1 = dm.getDistance() * distFac;
 
-    // Compute source position in display coordinates
-    int x1 = x0 + static_cast<int>(r1 * cosf(angle));
-    int y1 = y0 + static_cast<int>(r1 * sinf(angle));
+		// Compute source position in display coordinates
+		int x1 = x0 + static_cast<int>(r1 * cosf(angle));
+		int y1 = y0 + static_cast<int>(r1 * sinf(angle));
 
-    // Draw line from center to estimated source position
-    pGfx->line(x0, y0, x1, y1, Color::Red);
-    pGfx->circle(x1, y1, 3, Color::Green);
-    // -----------------------------------------------------------------------
-    // Azimuth visualization and error metrics
-    // -----------------------------------------------------------------------
-    difAz = fabs(dm.getAzimuth() - dm.getDebugValue2());
-    Color color = (difAz < errorAz ? Color::Green : Color::Red);
 
-    snprintf(buf, sizeof(buf), "Azimuth        %.3f", dm.getAzimuth());
-    pGfx->text8x12(10, 10, buf, color);
+		// Draw line from center to estimated source position
+		pGfx->line(x0, y0, x1, y1, Color::Red);
+		pGfx->circle(x1, y1, 3, Color::Green);
+    }
 
-    snprintf(buf, sizeof(buf), "Dif Azimuth    %.3f", difAz);
-    pGfx->text8x12(10, 20, buf, color);
+}
 
-    // -----------------------------------------------------------------------
-    // Distance visualization and error metrics
-    // -----------------------------------------------------------------------
-    float difDist = fabsf(dm.getDistance() - dm.getDebugValue3());
-    percent = 100.0f * difDist / dm.getDebugValue3();
-    color = (percent < errorDist ? Color::Green : Color::Red);
-
-    snprintf(buf, sizeof(buf), "Distance       %.1f", dm.getDistance());
-    pGfx->text8x12(10, 30, buf, color);
-
-    snprintf(buf, sizeof(buf), "Dif Distance   %.3f", difDist);
-    pGfx->text8x12(10, 40, buf, color);
-
-    // -----------------------------------------------------------------------
-    // True values (from MicTask simulation)
-    // -----------------------------------------------------------------------
-    snprintf(buf, sizeof(buf), "True Azimuth   %.3f", dm.getDebugValue2());
-    pGfx->text8x12(10, 160, buf, Color::White);
-
-    snprintf(buf, sizeof(buf), "True Distance  %.3f", dm.getDebugValue3());
-    pGfx->text8x12(10, 170, buf, Color::White);
-
+// Show System Data
+void LCDTask::showSystemData() {
     // -----------------------------------------------------------------------
     // Debug values (temporary placeholders)
     // -----------------------------------------------------------------------
-    snprintf(buf, sizeof(buf), "Loop Mic       %.3f", static_cast<float>(x1));
+    snprintf(buf, sizeof(buf), "SRPPhat Time   %.3f", dm.getSRPPhatTime());
     pGfx->text8x12(10, 180, buf, Color::White);
 
-    snprintf(buf, sizeof(buf), "SRPPhat Time   %.3f", static_cast<float>(y1));
+    snprintf(buf, sizeof(buf), "Loop Srp       %ld", dm.getSrpLoopCounter());
     pGfx->text8x12(10, 190, buf, Color::White);
 
-    snprintf(buf, sizeof(buf), "Frame: %d", frame_nr++);
+    snprintf(buf, sizeof(buf), "Loop Mic       %ld", dm.getMicLoopCounter());
     pGfx->text8x12(10, 200, buf, Color::White);
 
-    // Swap framebuffer (double buffering)
-    pGfx->activateFrameBuffer();
+    snprintf(buf, sizeof(buf), "Loop LCD       %ld", dm.getLcdLoopCounter());
+    pGfx->text8x12(10, 210, buf, Color::White);
+
+    uint32_t srpLoop = dm.getSrpLoopCounter();
+    uint32_t micLoop = dm.getMicLoopCounter();
+    if ((srpLoop != 0) && (micLoop != 0))  {
+    	snprintf(buf, sizeof(buf), "               %.2f", (float)micLoop/(float)srpLoop);
+        pGfx->text8x12(10, 220, buf, Color::White);
+    }
+
+    snprintf(buf, sizeof(buf), "USB timeSync   %ld  %d", usb_debug_counter, dm.getId());
+    pGfx->text8x12(10, 230, buf, Color::White);
+
+    switch (dm.getMode()) {
+    case 1: 	pGfx->text8x12(10, 170, "Mode: DETECT", Color::White); break;
+    case 2: 	pGfx->text8x12(10, 170, "Mode: CALI", Color::White); break;
+    case 3: 	pGfx->text8x12(10, 170, "Mode: READ", Color::White); break;
+    default: 	pGfx->text8x12(10, 170, "Mode: ERROR", Color::White); break;
+    }
+    snprintf(buf, sizeof(buf), "%s", (dm.getSimulation()== 0 ? "Real" : "Simulated"));
+    pGfx->text8x12(145, 170, buf, Color::White);
 }
 
-// ---------------------------------------------------------------------------
-// Internal rendering logic (currently unused).
-// ---------------------------------------------------------------------------
-void LCDTask::process()
-{
-    // Placeholder for extended rendering logic.
+// Show Detections();
+void LCDTask::showDetecktion() {
+
+    difAz = fabs(dm.getAzimuth() - dm.getDebugValue2());
+    Color colorAz = (difAz < errorAz ? Color::Green : Color::Red);
+
+    snprintf(buf, sizeof(buf), "Azimuth        %.3f", dm.getAzimuth());
+    pGfx->text8x12(10, 10, buf, colorAz);
+
+    float difDist = fabsf(dm.getDistance() - dm.getDebugValue3());
+    percent = 100.0f * difDist / dm.getDebugValue3();
+    Color colorDis = (percent < errorDist ? Color::Green : Color::Red);
+
+    snprintf(buf, sizeof(buf), "Distance       %.1f", dm.getDistance());
+    pGfx->text8x12(10, 20, buf, colorDis);
+
+    if (dm.getSimulation()==1) {
+
+		snprintf(buf, sizeof(buf), "Dif Azimuth    %.3f", difAz);
+		pGfx->text8x12(10, 70, buf, colorAz);
+
+		snprintf(buf, sizeof(buf), "Dif Distance   %.3f", difDist);
+		pGfx->text8x12(10, 80, buf, colorDis);
+
+		snprintf(buf, sizeof(buf), "True Azimuth   %.3f", dm.getDebugValue2());
+		pGfx->text8x12(10, 40, buf, Color::White);
+
+		snprintf(buf, sizeof(buf), "True Distance  %.3f", dm.getDebugValue3());
+		pGfx->text8x12(10, 50, buf, Color::White);
+    }
 }

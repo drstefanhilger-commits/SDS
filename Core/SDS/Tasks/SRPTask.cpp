@@ -75,7 +75,19 @@ void SRPTask::onStart()
 // ---------------------------------------------------------------------------
 // Periodic DSP update — performs SRP‑PHAT and distance estimation.
 // ---------------------------------------------------------------------------
-void SRPTask::runOnce()
+void SRPTask::runOnce() {
+	switch (dm.getMode()) {
+		case 1: detectHandler(); break;
+		case 2: claibrateHandler(); break;
+		case 3:	readHandler(); break;
+		default: errorHandler(); break;
+	}
+
+	dm.setSrpLoopCounter(dm.getSrpLoopCounter() + 1);
+}
+
+// Handler for detecting
+void SRPTask::detectHandler()
 {
     // 0) Start high‑resolution timing (DWT cycle counter)
     dwt.getStartTime();
@@ -113,12 +125,30 @@ void SRPTask::runOnce()
     // 4) Release microphone buffer for reuse
     micBufferManager.markFree(micBuffer);
 
-    // 5) Stop timing and publish DSP execution time
+    // 5) Send USB Message
+    USB_SendDetection(getTimestamp(), 0, srp.getResult(), dr.distance_m, dr.confidence);
+
+    // 6) Stop timing and publish DSP execution time
     dwt.getStopTime();
-    dm.setDebugTime(dwt.getTimeDifferenceMs());
+    dm.setSRPPhatTime(dwt.getTimeDifferenceMs());
 
     // Optional event dispatch:
     // dm.pushEvent(DataModelEventType::SRP_UPDATE, dt_ms);
+}
+
+// Handler for calibrating
+void SRPTask::claibrateHandler() {
+
+}
+
+// Handler for reading sound samples and writing via USB
+void SRPTask::readHandler() {
+
+}
+
+// Error-Handler
+void SRPTask::errorHandler() {
+
 }
 
 // ---------------------------------------------------------------------------

@@ -243,6 +243,7 @@ int main(void)
   SDS_StartDisplayManagerTask();
   SDS_StartMicTask();
   SDS_StartSRPPhatTask();
+  SDS_StartUSBTask();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

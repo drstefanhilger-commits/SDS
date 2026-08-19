@@ -47,7 +47,6 @@
 
 #pragma once
 #include "TaskBase.hpp"
-#include "LCDDriver.hpp"
 
 #include "Model.hpp"
 #include "Algorithm.hpp"
@@ -60,18 +59,27 @@ public:
     // Singleton instance — ensures only one LCD renderer runs.
     static LCDTask& instance() { static LCDTask dm; return dm; }
 
-private:
-    // Constructor: initializes base task and visualization parameters.
-    LCDTask();
-
+protected:
     // Periodic update — renders DSP results to the LCD.
     void runOnce() override;
 
     // Initialization hook — prepares LCD driver and buffers.
     void onStart() override;
 
-    // Internal rendering logic (called from runOnce()).
-    void process();
+
+
+private:
+    // Constructor: initializes base task and visualization parameters.
+    LCDTask();
+
+    // Show Radar
+    void showRadar();
+
+    // Show System Data
+    void showSystemData();
+
+    // Show Detections();
+    void showDetecktion();
 
 private:
     // Global data model containing DSP results.
@@ -101,9 +109,11 @@ private:
     float errorDist = 15.0f;    // ±15%
 
     // Polar visualization geometry.
-    int   x0       = 350;       // center X
+    int   x0       = 359;       // center X
     int   y0       = 136;       // center Y
     float R        = 120.0f;    // maximum radius
     float deg2rad  = 3.1415f / 180.0f;
     float distFac  = 120.0f / 100.0f; // pixel scaling for max 100m
+
+    char buf[128];
 };

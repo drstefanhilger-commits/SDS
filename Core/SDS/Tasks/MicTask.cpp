@@ -71,6 +71,29 @@ void MicTask::onStart()
 // ---------------------------------------------------------------------------
 void MicTask::runOnce()
 {
+	switch (dm.getMode()) {
+		case 1: detectHandler(); break;
+		case 2: claibrateHandler(); break;
+		default: errorHandler(); break;
+	}
+}
+
+// Handler for sampling
+void MicTask::detectHandler() {
+	switch(dm.getSimulation()) {
+		case 0: readMic(); break;
+		case 1: simulateMic(); break;
+		default: errorMic(); break;
+	}
+}
+
+// Read Microphone
+void MicTask::readMic() {
+
+}
+
+// Simulate Microphone
+void MicTask::simulateMic() {
     // 1) Update virtual source azimuth and distance
     trueAz += d_az;
 
@@ -80,7 +103,7 @@ void MicTask::runOnce()
         // Increase distance when azimuth wraps around
         trueDist += d_Dist;
 
-        if (trueDist >= 250.0f) {
+        if (trueDist >= 100.0f) {
             trueDist = 50.0f;   // Reset distance for cyclic testing
         }
     }
@@ -103,11 +126,21 @@ void MicTask::runOnce()
     dm.setDebugValue2(trueAz);
     dm.setDebugValue3(trueDist);
 
-    // Simple confidence test counter
-    test += 1.0f;
-    if (test > 1000.0f) {
-        test = 0.0f;
-    }
+    // Simple loop counter
+    dm.setMicLoopCounter(dm.getMicLoopCounter() + 1);
+}
 
-    dm.setConfidence(test);
+// Mic Error
+void MicTask::errorMic() {
+
+}
+
+// Handler for calibrating
+void MicTask::claibrateHandler() {
+
+}
+
+// Error-Handler
+void MicTask::errorHandler() {
+
 }

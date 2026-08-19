@@ -51,6 +51,7 @@
 #include "Model.hpp"
 #include "Algorithm.hpp"
 
+#include "USBDriver.h"
 #include "DWTTimer.hpp"
 
 class SRPTask : public TaskBase {
@@ -58,18 +59,31 @@ public:
     // Singleton instance — ensures only one SRP pipeline runs.
     static SRPTask& instance() { static SRPTask inst; return inst; }
 
-private:
-    // Constructor: initializes SRP grid, DSP modules, and buffer references.
-    SRPTask();
-
+protected:
     // Periodic DSP update — performs SRP‑PHAT and distance estimation.
     void runOnce() override;
 
     // Initialization hook — prepares buffers, timers, and DSP structures.
     void onStart() override;
 
+private:
+    // Constructor: initializes SRP grid, DSP modules, and buffer references.
+    SRPTask();
+
     // Returns a high‑resolution timestamp using DWT cycle counter.
     uint32_t getTimestamp();
+
+    // Handler for detecting
+    void detectHandler();
+
+    // Handler for calibrating
+    void claibrateHandler();
+
+    // Handler for reading sound samples and writing via USB
+    void readHandler();
+
+    // Error-Handler
+    void errorHandler();
 
 private:
     // SRP spatial grid (energy values for each candidate position).

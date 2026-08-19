@@ -56,8 +56,14 @@ void SDS_StartSRPPhatTask(void);
 // Start microphone acquisition / simulation task
 void SDS_StartMicTask(void);
 
+// Start USB task
+void SDS_StartUSBTask(void);
+
+
 // Execute SRP‑PHAT unit tests
 void SDS_RunSRPUnittest(void);
+
+
 
 #ifdef __cplusplus
 }

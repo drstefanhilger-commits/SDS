@@ -66,6 +66,13 @@ SDS_Data::SDS_Data()
       debugValue1(0.0f),
       debugValue2(0.0f),
       debugValue3(0.0f),
+	  id(0),
+	  mode(1),
+	  simulation(0),
+	  syncTimeDifference(0),
+	  micLoopCounter(0),
+	  lcdLoopCounter(0),
+	  srpLoopCounter(0),
       eventQueue(nullptr)
 {
     // Create mutex for thread‑safe access
@@ -101,7 +108,7 @@ void SDS_Data::setAzimuth(float az)
     azimuthDeg = az;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDistance(float d)
@@ -110,7 +117,7 @@ void SDS_Data::setDistance(float d)
     distance = d;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
 }
 
 void SDS_Data::setConfidence(float c)
@@ -119,7 +126,7 @@ void SDS_Data::setConfidence(float c)
     confidence = c;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDetected(bool d)
@@ -128,7 +135,7 @@ void SDS_Data::setDetected(bool d)
     detected = d;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::SRP_UPDATE, 0.0f);
 }
 
 // ---------------------------------------------------------------------------
@@ -140,7 +147,16 @@ void SDS_Data::setDebugTime(float ms)
     debugTime = ms;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setSRPPhatTime(float t)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    SRPPhatTime = t;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDebugValue(float val)
@@ -149,7 +165,7 @@ void SDS_Data::setDebugValue(float val)
     debugValue = val;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDebugValue1(float val)
@@ -158,7 +174,7 @@ void SDS_Data::setDebugValue1(float val)
     debugValue1 = val;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDebugValue2(float val)
@@ -167,7 +183,7 @@ void SDS_Data::setDebugValue2(float val)
     debugValue2 = val;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
 }
 
 void SDS_Data::setDebugValue3(float val)
@@ -176,7 +192,70 @@ void SDS_Data::setDebugValue3(float val)
     debugValue3 = val;
     osMutexRelease(mutex);
 
-    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setId(uint8_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    id = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setMode(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    mode = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setSimulation(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    simulation = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setSyncTimeDifference(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    syncTimeDifference = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setMicLoopCounter(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    micLoopCounter = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setLcdLoopCounter(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    lcdLoopCounter = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
+}
+
+void SDS_Data::setSrpLoopCounter(uint32_t val)
+{
+    osMutexAcquire(mutex, osWaitForever);
+    srpLoopCounter = val;
+    osMutexRelease(mutex);
+
+//    pushEvent(SDS_DataEventType::DEBUG_UPDATE, 0.0f);
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +291,14 @@ bool SDS_Data::getDetected() const
     bool v = detected;
     osMutexRelease(mutex);
     return v;
+}
+
+float SDS_Data::getSRPPhatTime() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    float t = SRPPhatTime;
+    osMutexRelease(mutex);
+    return t;
 }
 
 float SDS_Data::getDebugTime() const
@@ -252,4 +339,60 @@ float SDS_Data::getDebugValue3() const
     float v = debugValue3;
     osMutexRelease(mutex);
     return v;
+}
+
+uint8_t SDS_Data::getId() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint8_t val = id;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getMode() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = mode;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getSimulation() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = simulation;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getSyncTimeDifference() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = syncTimeDifference;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getMicLoopCounter() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = micLoopCounter;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getLcdLoopCounter() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = lcdLoopCounter;
+    osMutexRelease(mutex);
+    return val;
+}
+
+uint32_t SDS_Data::getSrpLoopCounter() const
+{
+    osMutexAcquire(mutex, osWaitForever);
+    uint32_t val = srpLoopCounter;
+    osMutexRelease(mutex);
+    return val;
 }

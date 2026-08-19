@@ -27,7 +27,11 @@
  *        Starts the MicTask responsible for microphone acquisition
  *        or synthetic test signal generation.
  *
- *   5. SDS_RunSRPUnittest()
+ *   5. SDS_StartUSBTask()
+ *        Starts the USBTask responsible for Sending and receiving
+ *        USB Messages..
+ *
+ *   6. SDS_RunSRPUnittest()
  *        Executes SRP‑PHAT unit tests for validation and debugging.
  *
  * All functions are wrapped in extern "C" to ensure correct linkage
@@ -40,6 +44,7 @@
 #include "LCDTask.hpp"
 #include "SRPTask.hpp"
 #include "MicTask.hpp"
+#include "USBTask.hpp"
 
 #include "UnitTest.hpp"
 
@@ -81,6 +86,15 @@ extern "C" {
     {
         MicTask::instance().start();
     }
+
+    // -----------------------------------------------------------------------
+    // Start USB sending / receiving task
+    // -----------------------------------------------------------------------
+    void SDS_StartUSBTask(void)
+    {
+        USBTask::instance().start();
+    }
+
 
     // -----------------------------------------------------------------------
     // Execute SRP‑PHAT unit tests

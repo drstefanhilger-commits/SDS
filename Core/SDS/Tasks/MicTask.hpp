@@ -63,15 +63,34 @@ public:
     // Singleton instance — ensures only one microphone simulator runs.
     static MicTask& instance() { static MicTask inst; return inst; }
 
+protected:
+    // Periodic DSP update — performs SRP‑PHAT and distance estimation.
+    void runOnce() override;
+
+    // Initialization hook — prepares buffers, timers, and DSP structures.
+    void onStart() override;
+
 private:
     // Constructor: initializes base task and simulation parameters.
     MicTask();
 
-    // Periodic update — generates synthetic microphone signals.
-    void runOnce() override;
+    // Handler for sampling
+    void detectHandler();
 
-    // Initialization hook — prepares simulation state.
-    void onStart() override;
+    // Handler for calibrating
+    void claibrateHandler();
+
+    // Error-Handler
+    void errorHandler();
+
+    // Read Microphone
+    void readMic();
+
+    // Simulate Microphone
+    void simulateMic();
+
+    // Mic-Error
+    void errorMic();
 
 private:
     // Global data model for publishing simulated microphone frames.
@@ -85,5 +104,4 @@ private:
     float trueAz   = 0.0f;      // current true azimuth
     float d_Dist   = 4.32f;     // distance increment per iteration
     float trueDist = 50.0f;     // current true distance
-    float test     = 0.0f;      // generic test variable (signal phase, etc.)
 };

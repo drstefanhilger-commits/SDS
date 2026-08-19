@@ -46,6 +46,20 @@ enum class SDS_DataEventType : uint8_t {
 };
 
 // ======================================================
+//  SDS DATA MODEL – Mode Event Types
+// ======================================================
+//
+// These event types are used in PC-Monitor message.
+// They allow tasks to change the mode.
+//
+enum class SDS_ModeEventType : uint32_t {
+    DETECT    = 1,      	// Standard Detecting
+    CALIBRATE = 2,    	    // Calibrating
+    READ      = 3, 			// Reading and Writing via USB
+	ERROR	  = 99
+};
+
+// ======================================================
 //  SDS DATA MODEL – Shared Structures
 // ======================================================
 
@@ -115,3 +129,20 @@ struct SDS_DataEvent {
     SDS_DataEventType type;    // event type
     float              processTime; // execution time in ms
 };
+
+// -------------------- SDS message --------------------
+struct SDS_UnixTimeSync {
+	uint8_t id			= 0x01;
+	uint8_t size[3]		= {0x00, 0x00, 0x0C};
+	uint8_t time[4]		= {0x00, 0x00, 0x00, 0x00};
+	uint8_t crc[4]      = {0x00, 0x00, 0x00, 0x00};
+};
+
+// -------------------- SDS message --------------------
+struct SDS_ModeChange {
+	uint8_t id 			= 0x02;
+	uint8_t size[3]		= {0x00, 0x00, 0x0C};
+	uint8_t mode[4]		= {0x00, 0x00, 0x00, 0x01};
+	uint8_t crc[4]		= {0x00, 0x00, 0x00, 0x00};
+};
+

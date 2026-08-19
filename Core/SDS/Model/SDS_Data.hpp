@@ -64,6 +64,12 @@
 #include "SDS_Params.hpp"
 #include "SDS_Structs.hpp"
 
+//// Counter for the *.c interface
+//extern "C" volatile uint32_t usb_counter1 = 0;
+//extern "C" volatile uint32_t usb_counter2 = 0;
+//extern "C" volatile uint32_t usb_counter3 = 0;
+
+
 class SDS_Data {
 public:
     // Singleton instance — ensures a single global data model.
@@ -72,16 +78,24 @@ public:
     // ---------------------------------------------------------------------
     // Write API (called by DSPTask, SRPTask, MicTask, SystemManager)
     // ---------------------------------------------------------------------
-    void setAzimuth(float az);
-    void setDistance(float d);
-    void setConfidence(float c);
-    void setDetected(bool d);
+    void setAzimuth(float val);
+    void setDistance(float val);
+    void setConfidence(float val);
+    void setDetected(bool val);
 
-    void setDebugTime(float ms);
+    void setDebugTime(float val);
+    void setSRPPhatTime(float val);
     void setDebugValue(float val);
     void setDebugValue1(float val);
     void setDebugValue2(float val);
     void setDebugValue3(float val);
+    void setId(uint8_t val);
+    void setMode(uint32_t val);
+    void setSimulation(uint32_t val);
+	void setSyncTimeDifference(uint32_t val);
+	void setMicLoopCounter(uint32_t val);
+	void setLcdLoopCounter(uint32_t val);
+	void setSrpLoopCounter(uint32_t val);
 
     // ---------------------------------------------------------------------
     // Read API (called by DisplayManager / LCDTask)
@@ -92,10 +106,18 @@ public:
     bool  getDetected() const;
 
     float getDebugTime() const;
+    float getSRPPhatTime() const;
     float getDebugValue() const;
     float getDebugValue1() const;
     float getDebugValue2() const;
     float getDebugValue3() const;
+    uint8_t getId() const;
+    uint32_t getMode() const;
+	uint32_t getSyncTimeDifference() const;
+    uint32_t getSimulation() const;
+	uint32_t getMicLoopCounter() const;
+	uint32_t getLcdLoopCounter() const;
+	uint32_t getSrpLoopCounter() const;
 
     // ---------------------------------------------------------------------
     // Event Queue API
@@ -120,10 +142,18 @@ private:
 
     // Debug values (temporary, can be extended to arrays).
     float debugTime;
+    float SRPPhatTime;
     float debugValue;
     float debugValue1;
     float debugValue2;
     float debugValue3;
+    uint8_t id;
+    uint32_t mode;
+    uint32_t simulation;
+    uint32_t syncTimeDifference;
+	uint32_t micLoopCounter;
+	uint32_t lcdLoopCounter;
+	uint32_t srpLoopCounter;
 
     // RTOS event queue for asynchronous notifications.
     osMessageQueueId_t eventQueue;
